@@ -10,7 +10,7 @@ class StudentRepository implements StudentRepositoryInterface
 {
     public function search($params = [])
     {
-        $students = Student::select('id','name','birth_date','phone');
+        $students = Student::with('courses');
 
         if (isset($params['name'])) {
             $students->where('name', 'like', '%'.$params['name'].'%');
@@ -20,6 +20,19 @@ class StudentRepository implements StudentRepositoryInterface
         }
         if (isset($params['birth_date'])) {
             $students->where('birth_date', '=', $params['birth_date']);
+        }
+        if (isset($params['course_id']) || isset($params['start_date']) || isset($params['end_date'])) {
+            $students->whereHas('courses', function($q) use($params) {
+                if (isset($params['course_id'])) {
+                    $q->where('course_id', $params['course_id']);
+                }
+                if (isset($params['start_date'])) {
+                    $q->where('start_date', $params['start_date']);
+                }
+                if (isset($params['end_date'])) {
+                    $q->where('end_date', $params['end_date']);
+                }
+            });
         }
 
         return $students->get();
